@@ -1,19 +1,24 @@
 from flask import *
-from flask_restful import reqparse, Api, Resource
+from flask_restful import Api, Resource, reqparse
 
 app = Flask(__name__)
 api = Api(app)
-
 videoArgs = reqparse.RequestParser()
-videoArgs.add_argument("name", type=str, help="enter a name")
-videoArgs.add_argument("likes", type=int, help="enter a num")
-videoArgs.add_argument("views", type=int, help="enter a num")
+videoArgs.add_argument("name", type=str, help='this is name')
+videoArgs.add_argument('likes', type=int, help='this is likes')
 
-class putreq(Resource):
-    def put(self, videoID):
+
+class helloWorld(Resource):
+    def get(self): 
+        return {'message':'hello world'}
+
+class addvids(Resource):
+    def put(self):
         args = videoArgs.parse_args()
-        return {videoID : args}
-api.add_resource(putreq, "/video/<int:videoID>")
+        return {'1':args}
+
+api.add_resource(addvids, "/vid")
+api.add_resource(helloWorld, "/")
 
 if __name__ == "__main__":
     app.run(debug=True)
