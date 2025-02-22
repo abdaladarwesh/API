@@ -1,40 +1,53 @@
 from flask import Flask
-from flask_restful import reqparse, Resource,Api, abort
+from flask_restful import reqparse, Resource,Api, abort, fields, marshal_with
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 api = Api(app)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
+db = SQLAlchemy(app)
 
-addVids = reqparse.RequestParser()
-addVids.add_argument("name", type=str, required=True,  help='name type is not right or its requierd')
-addVids.add_argument("views", type=int, required=True,  help='views type is not right or its requierd')
+class model(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    views = db.Column(db.Integer, nullable=False)
 
-videos = {}
-def check(video_id):
-    if video_id not in videos:
-        abort(404, message="the video you request is not exsit......")
+jsonify = {
+    'name' : fields.String(),
+    'views' : fields.Integer(),
+    'id' : fields.Integer()
+}
+addvid = reqparse.RequestParser()
+addvid.add_argument('name', type=str, required = True, help="you must enter a name")
+addvid.add_argument('views', type=int, required = True, help="you must enter a views and it must be int")
 
-def checkForExsit(video_id):
-    if video_id in videos:
-        abort(409, message="the video you request to put is already exsit......")
-
-class vids(Resource):
+class videos(Resource):
+    
+    @marshal_with(jsonify)
     def get(self, video_id):
-        check(video_id)
-        return videos[video_id] , 200
+        result = model.query.filter_by(id=video_id).first()
+        if not result:
+            abort(404, message="the vid is not found")
+        return result
     
+    @marshal_with(jsonify)
     def put(self, video_id):
-        checkForExsit(video_id)
-        args = addVids.parse_args()
-        videos[video_id] = args
-        return videos[video_id] , 201
-    
-    def delete (self, video_id):
-        check(video_id)
-        del videos[video_id]
-        return '', 204
-    
-    
-api.add_resource(vids, "/vid/<int:video_id>")
+        args = addvid.parse_args()
+        result = model.query.filter_by(id=video_id).first()
+        if result:
+            abort (409, message = "the vid already exist")
+        vid = model(id = video_id, name = args['name'], views = args['views'])
+        db.session.add(vid)
+        db.session.commit()
+        check = model.query.filter_by(id=video_id).first()
+        return check, 201
+
+api.add_resource(videos, '/vid/<int:video_id>')
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+
+    
+
+
