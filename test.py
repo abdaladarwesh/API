@@ -1,8 +1,8 @@
 import requests
 
 base = "http://127.0.0.1:5000/"
-putReq1 = requests.put(base + "vid/5", {"views":4567, "name":"gg"})
-putReq2 = requests.put(base + "vid/6", {"name":"yy", "views":98634})
+putReq1 = requests.put(base + "vid/5", {"views":2009, "name":"abdallah"})
+putReq2 = requests.put(base + "vid/6", {"name":"laila", "views":2010})
 print(putReq1.json())
 print(putReq2.json())
 input()

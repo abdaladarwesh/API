@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_restful import reqparse, Resource,Api, abort, fields, marshal_with
+from flask_restful import reqparse, Resource,Api, abort
 import mysql.connector
 db = mysql.connector.connect(host='localhost', user='root', passwd='', database='videos')
 cr = db.cursor(dictionary=True)
@@ -32,6 +32,25 @@ class videos(Resource):
         cr.execute(f"SELECT * FROM `vids` WHERE `id` = {video_id} ORDER BY `id` DESC")
         check = cr.fetchone()
         return check, 201
+    def patch(self, video_id):
+        args = addvid.parse_args()
+        cr.execute(f"SELECT * FROM `vids` WHERE `id` = {video_id} ORDER BY `id` DESC")
+        result = cr.fetchone()
+        if not result:
+            abort (404, message = "vid not found")
+        cr.execute(f"UPDATE `vids` SET  `name` = '{args['name']}', `views` = '{args['views']}' WHERE `vids`.`id` = {video_id}")
+        db.commit()
+        cr.execute(f"SELECT * FROM `vids` WHERE `id` = {video_id} ORDER BY `id` DESC")
+        r = cr.fetchone()
+        return r , 200
+    def delete(self, video_id):
+        cr.execute(f"SELECT * FROM `vids` WHERE `id` = {video_id} ORDER BY `id` DESC")
+        result = cr.fetchone()
+        if not result:
+            abort(404, message="the vid is not found")
+        cr.execute(f"DELETE FROM vids WHERE `vids`.`id` = {video_id}")
+        db.commit()
+        return {"message" : "vid deleted succesfully"}, 200
 
 api.add_resource(videos, '/vid/<int:video_id>')
 
